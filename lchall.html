@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>League Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #010a13;
+            --gold: #c8aa6e;
+            --gold-bright: #f0e6d2;
+            --magic-blue: #005a82;
+            --magic-cyan: #0ac8b9;
+        }
+
+        * { box-sizing: border-box; }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background: var(--bg-dark);
+            color: var(--gold-bright);
+            font-family: 'Cormorant Garamond', serif;
+            overflow-x: hidden;
+        }
+
+        canvas#bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            padding-bottom: 100px;
+        }
+
+        .title-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 55px 0 40px;
+            gap: 0;
+        }
+
+        .title-eyebrow {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 1.15rem;
+            letter-spacing: 8px;
+            color: var(--magic-cyan);
+            text-transform: lowercase;
+            opacity: 0.85;
+            margin-bottom: 6px;
+        }
+
+        h1 {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 4.2rem;
+            font-weight: 900;
+            letter-spacing: 6px;
+            margin: 0;
+            text-align: center;
+            text-transform: uppercase;
+            background: linear-gradient(180deg, #ffffff 0%, #f0e6d2 30%, #c8aa6e 65%, #785a28 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 18px rgba(200, 170, 110, 0.45)) drop-shadow(0 2px 40px rgba(10,200,185,0.12));
+            line-height: 1.1;
+        }
+
+        .title-rule {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 14px;
+            width: 420px;
+        }
+
+        .title-rule span {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold));
+        }
+
+        .title-rule span.r { background: linear-gradient(-90deg, transparent, var(--gold)); }
+
+        .title-rule em {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 0.95rem;
+            letter-spacing: 5px;
+            color: var(--gold);
+            opacity: 0.7;
+            white-space: nowrap;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            max-width: 1600px;
+        }
+
+        .player-card {
+            background: rgba(9, 20, 40, 0.9);
+            border: 2px solid var(--gold);
+            width: 300px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 50px rgba(0,0,0,0.9);
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .player-card:hover {
+            transform: translateY(-15px);
+            border-color: var(--magic-cyan);
+            box-shadow: 0 0 30px rgba(10, 200, 185, 0.4);
+        }
+
+        input.player-name {
+            background: transparent;
+            border: none;
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            text-align: center;
+            width: 100%;
+            outline: none;
+            margin-bottom: 10px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .line { height: 2px; flex: 1; background: linear-gradient(90deg, transparent, var(--gold)); }
+        .line.right { background: linear-gradient(-90deg, transparent, var(--gold)); }
+        .diamond {
+            width: 12px; height: 12px;
+            border: 2px solid var(--gold);
+            transform: rotate(45deg);
+            margin: 0 15px;
+            box-shadow: 0 0 10px var(--gold);
+            background: var(--bg-dark);
+        }
+
+        .current-champ {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 20px var(--magic-blue);
+            color: #fff;
+            text-align: center;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        button {
+            background: #1e2328;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 14px;
+            cursor: pointer;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 3px;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: var(--gold);
+            color: #000;
+        }
+
+        button.next-btn {
+            background: linear-gradient(135deg, #1e2328, #0a1428);
+            border: 2px solid var(--gold-bright);
+        }
+
+        .history-box {
+            margin-top: 30px;
+            border-top: 1px solid rgba(200, 170, 110, 0.2);
+            padding-top: 15px;
+        }
+
+        .history-title {
+            display: block;
+            text-align: center;
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 1rem;
+            color: var(--gold);
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .history-list {
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 1rem;
+            text-align: center;
+            color: #8c8c8c;
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--gold); }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg"></canvas>
+
+    <div class="content-wrapper">
+        <div class="title-wrap">
+            <p class="title-eyebrow">summoner's challenge</p>
+            <h1>League<br>Challenge</h1>
+            <div class="title-rule">
+                <span></span>
+                <em>all champions</em>
+                <span class="r"></span>
+            </div>
+        </div>
+        <div class="container" id="app"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+    /* ── FIREBASE CONFIG (DEINE DATEN) ── */
+    const firebaseConfig = {
+      apiKey: "AIzaSyBHLdoyyJ3zgs43b9cREWNdG10_9-SIUHg",
+      authDomain: "league-challenge-8fd6b.firebaseapp.com",
+      databaseURL: "https://league-challenge-8fd6b-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "league-challenge-8fd6b",
+      storageBucket: "league-challenge-8fd6b.firebasestorage.app",
+      messagingSenderId: "4135113065",
+      appId: "1:4135113065:web:ba0034d5c44b1548b8edf8",
+      measurementId: "G-053F5JFT0M"
+    };
+
+    // Firebase initialisieren
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    /* ── BACKGROUND ENGINE ── */
+    (function() {
+        const canvas = document.getElementById('bg');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+
+        function resize() {
+            W = canvas.width  = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const GOLD = [200, 170, 110];
+        const BLUE = [10,  160, 200];
+        const TEAL = [10,  210, 185];
+
+        const RUNES = Array.from({length: 7}, () => ({
+            x:    Math.random() * W,
+            y:    Math.random() * H,
+            r:    60 + Math.random() * 120,
+            rot:  Math.random() * Math.PI * 2,
+            drot: (Math.random() - 0.5) * 0.003,
+            a:    0.02 + Math.random() * 0.06,
+            pulse: Math.random() * Math.PI * 2,
+        }));
+
+        function hexPath(cx, cy, r, rot) {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const a = rot + (Math.PI / 3) * i;
+                const x = cx + r * Math.cos(a);
+                const y = cy + r * Math.sin(a);
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+        }
+
+        function drawRune(ru, t) {
+            const pulse = 0.5 + 0.5 * Math.sin(ru.pulse + t * 0.0008);
+            const alpha = ru.a * pulse;
+            hexPath(ru.x, ru.y, ru.r, ru.rot);
+            ctx.strokeStyle = `rgba(${GOLD},${alpha})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            hexPath(ru.x, ru.y, ru.r * 0.6, ru.rot + Math.PI / 6);
+            ctx.strokeStyle = `rgba(${TEAL},${alpha * 0.7})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+            ctx.save();
+            ctx.translate(ru.x, ru.y);
+            ctx.rotate(ru.rot + t * 0.0004);
+            ctx.beginPath();
+            const s = ru.r * 0.18;
+            ctx.moveTo(0, -s); ctx.lineTo(s, 0); ctx.lineTo(0, s); ctx.lineTo(-s, 0);
+            ctx.closePath();
+            ctx.strokeStyle = `rgba(${GOLD},${alpha * 1.5})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        const STREAMS = Array.from({length: 5}, () => newStream());
+        function newStream() {
+            const horiz = Math.random() < 0.5;
+            return { horiz, pos: horiz ? Math.random() * H : Math.random() * W, head: -200, speed: 0.6 + Math.random() * 1.2, len: 120 + Math.random() * 200, col: Math.random() < 0.6 ? GOLD : BLUE, alpha: 0.3 + Math.random() * 0.4 };
+        }
+        function drawStream(s) {
+            const maxLen = s.horiz ? W + 400 : H + 400;
+            s.head += s.speed;
+            const tail = s.head - s.len;
+            if (s.head > maxLen) { Object.assign(s, newStream()); return; }
+            const x1 = s.horiz ? tail : s.pos, y1 = s.horiz ? s.pos : tail, x2 = s.horiz ? s.head : s.pos, y2 = s.horiz ? s.pos : s.head;
+            const grad = s.horiz ? ctx.createLinearGradient(x1, 0, x2, 0) : ctx.createLinearGradient(0, y1, 0, y2);
+            grad.addColorStop(0, `rgba(${s.col},0)`);
+            grad.addColorStop(0.5, `rgba(${s.col},${s.alpha})`);
+            grad.addColorStop(1, `rgba(${s.col},0)`);
+            ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.strokeStyle = grad; ctx.lineWidth = 1.2; ctx.stroke();
+            ctx.beginPath(); ctx.arc(x2, y2, 2.5, 0, Math.PI * 2); ctx.fillStyle = `rgba(${s.col},${s.alpha * 1.2})`; ctx.fill();
+        }
+
+        const PARTICLES = Array.from({length: 70}, () => newParticle());
+        function newParticle() { return { x: Math.random() * W, y: Math.random() * H, r: 0.5 + Math.random() * 1.8, vx: (Math.random() - 0.5) * 0.25, vy: -0.1 - Math.random() * 0.35, life: 0, maxLife: 200 + Math.random() * 300, col: Math.random() < 0.7 ? GOLD : TEAL }; }
+        function drawParticle(p) { p.life++; p.x += p.vx; p.y += p.vy; if (p.life > p.maxLife || p.y < -10) { Object.assign(p, newParticle()); return; } const t = p.life / p.maxLife; const a = t < 0.2 ? t / 0.2 : t > 0.8 ? (1 - t) / 0.2 : 1; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fillStyle = `rgba(${p.col},${a * 0.6})`; ctx.fill(); }
+        function drawVignette() { const g = ctx.createRadialGradient(W/2, H/2, H * 0.3, W/2, H/2, H); g.addColorStop(0, 'rgba(1,10,19,0)'); g.addColorStop(1, 'rgba(1,10,19,0.85)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+
+        let t = 0;
+        function loop() { requestAnimationFrame(loop); t++; ctx.fillStyle = 'rgba(1,10,19,0.18)'; ctx.fillRect(0, 0, W, H); RUNES.forEach(ru => { ru.rot += ru.drot; drawRune(ru, t); }); STREAMS.forEach(s => drawStream(s)); PARTICLES.forEach(p => drawParticle(p)); drawVignette(); }
+        loop();
+    })();
+
+    /* ── GAME LOGIC ── */
+    const ALL_CHAMPIONS = ["Aatrox","Ahri","Akali","Akshan","Alistar","Amumu","Anivia","Annie","Aphelios","Ashe","Aurelion Sol","Azir","Bard","Bel'Veth","Blitzcrank","Brand","Braum","Briar","Caitlyn","Camille","Cassiopeia","Cho'Gath","Corki","Darius","Diana","Dr. Mundo","Draven","Ekko","Elise","Evelynn","Ezreal","Fiddlesticks","Fiora","Fizz","Galio","Gangplank","Garen","Gnar","Gragas","Graves","Gwen","Hecarim","Heimerdinger","Hwei","Illaoi","Irelia","Ivern","Janna","Jarvan IV","Jax","Jayce","Jhin","Jinx","K'Sante","Kai'Sa","Kalista","Karma","Karthus","Kassadin","Katarina","Kayle","Kayn","Kennen","Kha'Zix","Kindred","Kled","Kog'Maw","LeBlanc","Lee Sin","Leona","Lillia","Lissandra","Lucian","Lulu","Lux","Malphite","Malzahar","Maokai","Master Yi","Mel","Milio","Miss Fortune","Mordekaiser","Morgana","Naafiri","Nami","Nasus","Nautilus","Neeko","Nidalee","Nilah","Nocturne","Nunu & Willump","Olaf","Orianna","Ornn","Pantheon","Poppy","Pyke","Qiyana","Quinn","Rakan","Rammus","Rek'Sai","Rell","Renata Glasc","Renekton","Rengar","Riven","Rumble","Ryze","Samira","Sejuani","Senna","Seraphine","Sett","Shaco","Shen","Shyvana","Singed","Sion","Sivir","Skarner","Smolder","Sona","Soraka","Swain","Sylas","Syndra","Tahm Kench","Taliyah","Talon","Taric","Teemo","Thresh","Tristana","Trundle","Tryndamere","Twisted Fate","Twitch","Udyr","Urgot","Varus","Vayne","Veigar","Vel'Koz","Vex","Vi","Viego","Viktor","Vladimir","Volibear","Warwick","Wukong","Xayah","Xerath","Xin Zhao","Yasuo","Yone","Yorick","Yuumi","Yunara","Zaahen","Zac","Zed","Zeri","Ziggs","Zilean","Zoe","Zyra"];
+
+    let state = {
+        players: Array.from({length: 5}, (_, i) => ({ name: `Spieler ${i+1}`, current: "", history: [] })),
+        used: []
+    };
+
+    // Firebase Realtime Update
+    db.ref('game_state').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            // Firebase speichert Arrays manchmal als Objekte – sicher zurück konvertieren
+            data.players = Object.values(data.players || {}).map(p => ({
+                name: p.name || '',
+                current: p.current || '',
+                history: p.history ? Object.values(p.history) : []
+            }));
+            data.used = data.used ? Object.values(data.used) : [];
+            state = data;
+            render();
+        } else {
+            save(); // Initialer Upload
+        }
+    });
+
+    function save() {
+        db.ref('game_state').set(state);
+    }
+
+    window.roll = function(idx, isSkip) {
+        const p = state.players[idx];
+        const pool = ALL_CHAMPIONS.filter(c => !state.used.includes(c));
+        if(pool.length === 0) return alert("Alle Champions geschafft!");
+        if(!isSkip && p.current) { 
+            state.used.push(p.current); 
+            if(!p.history) p.history = [];
+            p.history.unshift(p.current); 
+        }
+        p.current = pool[Math.floor(Math.random() * pool.length)];
+        save();
+    }
+
+    window.back = function(idx) {
+        const p = state.players[idx];
+        if(!p.history || !p.history.length) return;
+        const last = p.history.shift();
+        state.used = state.used.filter(c => c !== last);
+        p.current = last;
+        save();
+    }
+
+    window.updateName = function(idx, newName) {
+        state.players[idx].name = newName;
+        save();
+    }
+
+    function render() {
+        const app = document.getElementById('app');
+        if(!app) return;
+        app.innerHTML = '';
+        state.players.forEach((p, i) => {
+            const card = document.createElement('div');
+            card.className = 'player-card';
+            card.innerHTML = `
+                <input type="text" class="player-name" value="${p.name}" onblur="updateName(${i}, this.value)">
+                <div class="divider">
+                    <div class="line"></div>
+                    <div class="diamond"></div>
+                    <div class="line right"></div>
+                </div>
+                <div class="current-champ">${p.current || "BEREIT?"}</div>
+                <div class="btn-group">
+                    <button class="next-btn" onclick="roll(${i}, false)">Nächster Champion</button>
+                    <button onclick="roll(${i}, true)">Skip</button>
+                    <button onclick="back(${i})">Zurück</button>
+                </div>
+                <div class="history-box">
+                    <span class="history-title">Geschafft</span>
+                    <div class="history-list">${(p.history || []).map(h => `<div>${h}</div>`).join('')}</div>
+                </div>
+            `;
+            app.appendChild(card);
+        });
+    }
+    </script>
+</body>
+</html>
